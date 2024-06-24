@@ -163,7 +163,7 @@ export const ColumnContainer = ({
                         </div>
                     </div>
                     <div className="flex flex-col gap-1 justify-center items-center">
-                        <p className="text-xs">Del Tier</p>
+                        <p className="text-xs">Delete Tier</p>
                         <button
                             onClick={() => {
                                 deleteColumn(column.id)

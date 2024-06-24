@@ -11,35 +11,30 @@ import { ColumnContainer } from "./ColumnContainer"
 
 const defaultCols: Column[] = [
     {
-        id: "S+",
-        title: "S+",
-        color: "#f44336",
-    },
-    {
         id: "S",
         title: "S",
-        color: "#ff9800",
+        color: "#4caf20",
     },
     {
         id: "A",
         title: "A",
-        color: "#ffeb3b",
+        color: "#4caf50",
     },
     {
         id: "B",
         title: "B",
-        color: "#4caf50",
+        color: "#ffeb3b",
     },
     {
         id: "C",
         title: "C",
-        color: "#00bcd4",
+        color: "#ff9800",
     },
     {
         id: "D",
         title: "D",
-        color: "#ffffff",
-    },
+        color: "#f44336",
+    }
 ]
 
 const defaultCard: Card[] = []
