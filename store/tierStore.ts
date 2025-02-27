@@ -36,6 +36,11 @@ interface TierState {
     onDragStart: (event: DragStartEvent) => void;
     onDragEnd: (event: DragEndEvent) => void;
     onDragOver: (event: DragOverEvent) => void;
+
+    // Save and load actions
+    saveTierList: () => void;
+    loadTierList: (id: string) => void;
+    loadFromData: (data: { title: string; columns: Column[]; cards: Card[] }) => void;
 }
 
 const defaultCols: Column[] = [
@@ -231,5 +236,55 @@ export const useTierStore = create<TierState>((set, get) => ({
                 };
             });
         }
+    },
+
+    // Save and load actions
+    saveTierList: () => {
+        const { title, columns, cards } = get();
+        const tierData = {
+            title,
+            columns,
+            cards,
+            savedAt: new Date().toISOString()
+        };
+
+        try {
+            localStorage.setItem('tierMaker_' + title.replace(/\s+/g, '_'), JSON.stringify(tierData));
+            return true;
+        } catch (error) {
+            console.error('Failed to save tier list:', error);
+            return false;
+        }
+    },
+
+    loadTierList: (id) => {
+        try {
+            const savedData = localStorage.getItem('tierMaker_' + id);
+            if (savedData) {
+                const parsedData = JSON.parse(savedData);
+                set({
+                    title: parsedData.title,
+                    columns: parsedData.columns,
+                    cards: parsedData.cards
+                });
+                return true;
+            }
+            return false;
+        } catch (error) {
+            console.error('Failed to load tier list:', error);
+            return false;
+        }
+    },
+
+    loadFromData: (data) => {
+        if (data && data.title && Array.isArray(data.columns) && Array.isArray(data.cards)) {
+            set({
+                title: data.title,
+                columns: data.columns,
+                cards: data.cards
+            });
+            return true;
+        }
+        return false;
     }
 }));
