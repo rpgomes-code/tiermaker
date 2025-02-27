@@ -3,9 +3,10 @@ import { SortableContext, horizontalListSortingStrategy, useSortable } from "@dn
 import { CSS } from "@dnd-kit/utilities"
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover"
-import { PlusIcon, Settings, TrashIcon } from "lucide-react"
+import { PlusIcon, Settings, TrashIcon, Image } from "lucide-react"
 import { DragCard } from "./DragCard"
 import { useTierStore } from "@/store/tierStore"
+import { ImageGridView } from "./ImageGridView"
 
 interface Props {
     column: Column
@@ -25,6 +26,7 @@ export const ColumnContainer = ({
 
     const [editMode, setEditMode] = useState(false)
     const [background, setBackground] = useState(column.color)
+    const [showImageGrid, setShowImageGrid] = useState(false)
     const solid = [
         "#f44336", //red
         "#ff9800", //orange
@@ -53,6 +55,11 @@ export const ColumnContainer = ({
     const cardsIds = useMemo(() => {
         return cards.map((card) => card.id)
     }, [cards])
+
+    // Count how many cards have images
+    const cardsWithImages = useMemo(() => {
+        return cards.filter(card => card.imageUrl).length;
+    }, [cards]);
 
     useEffect(() => {
         if (background !== column.color) {
@@ -88,96 +95,115 @@ export const ColumnContainer = ({
 
     return (
         <div ref={setNodeRef} style={style}
-             className="w-full min-w-[330px] h-full min-h-[100px] rounded-md flex items-stretch justify-between"
+             className="w-full min-w-[330px] h-full min-h-[100px] rounded-md flex flex-col items-stretch"
         >
-            {/* title */}
-            <div ref={divRef} {...attributes} {...listeners}
-                 onClick={() => {
-                     setEditMode(true)
-                 }}
-                 className="flex justify-center items-center text-sm rounded-md w-24"
-                 style={{ background }}
-            >
-                <div className="flex gap-2 justify-center items-center text-sm rounded-full w-24">
-                    <div className="flex p-2">
-                        <p ref={textRef} className="break-all text-black">
-                            {!editMode && column.title}
-                        </p>
-                        {editMode && (
-                            <input
-                                className="bg-black border rounded outline-none px-2 w-full"
-                                value={column.title}
-                                onChange={(e) => updateColumn(column.id, e.target.value)}
-                                autoFocus
-                                onBlur={() => {
-                                    setEditMode(false)
-                                }}
-                                onKeyDown={(e) => {
-                                    if(e.key !== "Enter") return
-                                    setEditMode(false)
-                                }}
-                            />
-                        )}
+            <div className="flex items-stretch justify-between">
+                {/* title */}
+                <div ref={divRef} {...attributes} {...listeners}
+                     onClick={() => {
+                         setEditMode(true)
+                     }}
+                     className="flex justify-center items-center text-sm rounded-md w-24"
+                     style={{ background }}
+                >
+                    <div className="flex gap-2 justify-center items-center text-sm rounded-full w-24">
+                        <div className="flex p-2">
+                            <p ref={textRef} className="break-all text-black">
+                                {!editMode && column.title}
+                            </p>
+                            {editMode && (
+                                <input
+                                    className="bg-black border rounded outline-none px-2 w-full"
+                                    value={column.title}
+                                    onChange={(e) => updateColumn(column.id, e.target.value)}
+                                    autoFocus
+                                    onBlur={() => {
+                                        setEditMode(false)
+                                    }}
+                                    onKeyDown={(e) => {
+                                        if(e.key !== "Enter") return
+                                        setEditMode(false)
+                                    }}
+                                />
+                            )}
+                        </div>
                     </div>
                 </div>
-            </div>
-            {/* content */}
-            <div className="flex flex-grow gap-2 p-2">
-                <div className="flex flex-wrap w-full gap-4 justify-start">
-                    <SortableContext items={cardsIds} strategy={horizontalListSortingStrategy}>
-                        {cards.map((card) => (
-                            <DragCard
-                                key={card.id}
-                                card={card}
-                            />
-                        ))}
-                    </SortableContext>
-                </div>
-                {/* card footer */}
-                <Popover>
-                    <PopoverTrigger asChild>
-                        <button className="flex w-14 h-[100px] gap-2 justify-center items-center
-                            bg-[#0D1117] border-2 rounded-md p-4 hover:text-rose-500 active:bg-black">
-                            <Settings />
-                        </button>
-                    </PopoverTrigger>
-                    <PopoverContent className="flex gap-1 w-96">
-                        <div className="flex flex-col gap-1 justify-center items-center">
-                            <p className="text-xs">Add Card</p>
-                            <button
-                                className="flex w-12 justify-center items-center rounded-md
-                                hover:text-rose-500 active:bg-black"
-                                onClick={() => {
-                                    createCard(column.id)
-                                }}
-                            >
-                                <PlusIcon />
+                {/* content */}
+                <div className="flex flex-grow gap-2 p-2">
+                    <div className="flex flex-wrap w-full gap-4 justify-start">
+                        <SortableContext items={cardsIds} strategy={horizontalListSortingStrategy}>
+                            {cards.map((card) => (
+                                <DragCard
+                                    key={card.id}
+                                    card={card}
+                                />
+                            ))}
+                        </SortableContext>
+                    </div>
+                    {/* card footer */}
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <button className="flex w-14 h-[100px] gap-2 justify-center items-center
+                                bg-[#0D1117] border-2 rounded-md p-4 hover:text-rose-500 active:bg-black">
+                                <Settings />
                             </button>
-                        </div>
-                        <div className="flex flex-col gap-1 items-center">
-                            <p className="text-xs">Color</p>
-                            <div className="flex flex-row gap-1 items-center">
-                                {solid.map((s) => (
-                                    <div key={s} style={{ background: s }}
-                                         className="h-6 w-6 cursor-pointer rounded-md active:scale-105"
-                                         onClick={() => setBackground(s)}
-                                    />
-                                ))}
+                        </PopoverTrigger>
+                        <PopoverContent className="flex gap-1 w-96">
+                            <div className="flex flex-col gap-1 justify-center items-center">
+                                <p className="text-xs">Add Card</p>
+                                <button
+                                    className="flex w-12 justify-center items-center rounded-md
+                                    hover:text-rose-500 active:bg-black"
+                                    onClick={() => {
+                                        createCard(column.id)
+                                    }}
+                                >
+                                    <PlusIcon />
+                                </button>
                             </div>
-                        </div>
-                        <div className="flex flex-col gap-1 justify-center items-center">
-                            <p className="text-xs">Delete Tier</p>
-                            <button
-                                onClick={() => {
-                                    deleteColumn(column.id)
-                                }}
-                                className="stroke-white rounded">
-                                <TrashIcon />
-                            </button>
-                        </div>
-                    </PopoverContent>
-                </Popover>
+                            <div className="flex flex-col gap-1 items-center">
+                                <p className="text-xs">Color</p>
+                                <div className="flex flex-row gap-1 items-center">
+                                    {solid.map((s) => (
+                                        <div key={s} style={{ background: s }}
+                                             className="h-6 w-6 cursor-pointer rounded-md active:scale-105"
+                                             onClick={() => setBackground(s)}
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+                            {cardsWithImages > 0 && (
+                                <div className="flex flex-col gap-1 justify-center items-center">
+                                    <p className="text-xs">Image View</p>
+                                    <button
+                                        onClick={() => setShowImageGrid(prev => !prev)}
+                                        className="hover:text-rose-500 rounded"
+                                        title={showImageGrid ? "Hide Images" : "Show Images"}
+                                    >
+                                        <Image size={18} />
+                                    </button>
+                                </div>
+                            )}
+                            <div className="flex flex-col gap-1 justify-center items-center">
+                                <p className="text-xs">Delete Tier</p>
+                                <button
+                                    onClick={() => {
+                                        deleteColumn(column.id)
+                                    }}
+                                    className="stroke-white rounded">
+                                    <TrashIcon />
+                                </button>
+                            </div>
+                        </PopoverContent>
+                    </Popover>
+                </div>
             </div>
+
+            {/* Image Grid View toggle */}
+            {showImageGrid && cardsWithImages > 0 && (
+                <ImageGridView cards={cards} columnTitle={column.title} />
+            )}
         </div>
     )
 }

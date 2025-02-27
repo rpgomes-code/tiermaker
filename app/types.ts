@@ -10,4 +10,5 @@ export type Card = {
     id: Id
     columnId: Id
     content: string
+    imageUrl?: string  // Added optional property for image data
 }

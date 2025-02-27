@@ -1,5 +1,5 @@
 "use client"
-import React, { useEffect, useMemo, useRef } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Id } from "@/app/types"
 import { useSensors, useSensor, PointerSensor,
     DndContext
@@ -10,10 +10,18 @@ import { TierExport } from "./TierExport"
 import { LoadTierList } from "./LoadTierList"
 import { useTierStore } from '@/store/tierStore'
 import { Button } from './ui/button'
-import { Undo2, Redo2 } from 'lucide-react'
+import { Undo2, Redo2, ImageIcon } from 'lucide-react'
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip'
 import { useToast } from '@/hooks/use-toast'
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
+import { BatchImageImport } from './BatchImageImport'
 
 export const TierMain = () => {
     const {
@@ -34,9 +42,18 @@ export const TierMain = () => {
         canRedo
     } = useTierStore();
 
+    const [selectedColumnId, setSelectedColumnId] = useState<Id | null>(null);
+
     const { toast } = useToast();
     const columnsId = useMemo(() => columns.map((col) => col.id), [columns]);
     const boardRef = useRef<HTMLDivElement>(null);
+
+    // Set first column as default for image import when columns change
+    useEffect(() => {
+        if (columns.length > 0 && !selectedColumnId) {
+            setSelectedColumnId(columns[0].id);
+        }
+    }, [columns, selectedColumnId]);
 
     // Configure sensors for drag detection
     const sensors = useSensors(
@@ -189,7 +206,29 @@ export const TierMain = () => {
                                 </div>
                             </TooltipProvider>
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 items-center">
+                            {columns.length > 0 && (
+                                <>
+                                    <Select
+                                        value={selectedColumnId?.toString()}
+                                        onValueChange={(value) => setSelectedColumnId(value)}
+                                    >
+                                        <SelectTrigger className="w-32">
+                                            <SelectValue placeholder="Select Tier" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {columns.map((column) => (
+                                                <SelectItem key={column.id} value={column.id.toString()}>
+                                                    {column.title}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    {selectedColumnId && (
+                                        <BatchImageImport columnId={selectedColumnId} />
+                                    )}
+                                </>
+                            )}
                             <LoadTierList />
                             <TierExport boardRef={boardRef} />
                         </div>

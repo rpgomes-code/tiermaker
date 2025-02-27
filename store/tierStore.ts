@@ -48,7 +48,9 @@ interface TierState {
     // Card actions
     createCard: (columnId: Id) => void;
     deleteCard: (id: Id) => void;
-    updateCard: (id: Id, content: string) => void;
+    updateCard: (id: Id, content: string, imageUrl?: string) => void;
+    updateCardImage: (id: Id, imageUrl: string) => void;
+    removeCardImage: (id: Id) => void;
 
     // Drag and drop handlers
     onDragStart: (event: DragStartEvent) => void;
@@ -267,13 +269,55 @@ export const useTierStore = create<TierState>((set, get) => ({
         }));
     },
 
-    updateCard: (id, content) => {
+    updateCard: (id, content, imageUrl) => {
         const currentState = createStateSnapshot(get());
 
         set((state) => {
             const newCards = state.cards.map((card) => {
                 if (card.id !== id) return card;
-                return { ...card, content };
+                return {
+                    ...card,
+                    content,
+                    // Only update imageUrl if it's provided, otherwise keep existing
+                    ...(imageUrl !== undefined ? { imageUrl } : {})
+                };
+            });
+
+            return {
+                cards: newCards,
+                past: addToHistory(state.past, currentState),
+                future: []
+            };
+        });
+    },
+
+    // New methods for image handling
+    updateCardImage: (id, imageUrl) => {
+        const currentState = createStateSnapshot(get());
+
+        set((state) => {
+            const newCards = state.cards.map((card) => {
+                if (card.id !== id) return card;
+                return { ...card, imageUrl };
+            });
+
+            return {
+                cards: newCards,
+                past: addToHistory(state.past, currentState),
+                future: []
+            };
+        });
+    },
+
+    removeCardImage: (id) => {
+        const currentState = createStateSnapshot(get());
+
+        set((state) => {
+            const newCards = state.cards.map((card) => {
+                if (card.id !== id) return card;
+                // Create a new object without the imageUrl property
+                const { imageUrl, ...cardWithoutImage } = card;
+                return cardWithoutImage;
             });
 
             return {
